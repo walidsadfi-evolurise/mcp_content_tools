@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 1.x]
+  pull_request:
+
+jobs:
+  test:
+    name: Drupal ${{ matrix.drupal }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { drupal: '^10.3', php: '8.3' }
+          - { drupal: '^11.1', php: '8.3' }
+          - { drupal: '^11.1', php: '8.4' }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: module
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: gd, pdo_sqlite, sqlite3, mbstring, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Create Drupal project
+        run: |
+          composer create-project "drupal/recommended-project:${{ matrix.drupal }}" drupal --no-interaction --no-install
+          cd drupal
+          composer config minimum-stability beta
+          composer config prefer-stable true
+          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer config allow-plugins.phpstan/extension-installer true
+          composer config allow-plugins.php-http/discovery true
+          composer config allow-plugins.tbachert/spi true
+          composer config repositories.module path ../module
+          composer require --no-update "drupal/mcp_content_tools:*@dev" "drupal/mcp_server:^2.0@beta" "drush/drush:^13" "drupal/core-dev:${{ matrix.drupal }}"
+          composer install --no-interaction --no-progress
+
+      - name: Lint (Drupal coding standards)
+        working-directory: drupal
+        run: |
+          vendor/bin/phpcs --standard=Drupal,DrupalPractice --extensions=php,module,inc,install,yml --ignore=vendor web/modules/contrib/mcp_content_tools
+
+      - name: PHPUnit
+        working-directory: drupal
+        env:
+          SIMPLETEST_DB: sqlite://localhost/sites/default/files/.ht.sqlite
+          SIMPLETEST_BASE_URL: http://localhost
+          BROWSERTEST_OUTPUT_DIRECTORY: /tmp
+          SYMFONY_DEPRECATIONS_HELPER: disabled
+        run: |
+          mkdir -p web/sites/default/files web/sites/simpletest
+          chmod -R 777 web/sites/default/files web/sites/simpletest
+          vendor/bin/phpunit -c web/core/phpunit.xml.dist --testsuite unit,kernel web/modules/contrib/mcp_content_tools
