@@ -15,3 +15,4 @@ services:
       - '@mcp_content_tools.html_to_markdown'
   mcp_content_tools.html_to_markdown:
     class: Drupal\mcp_content_tools\HtmlToMarkdown
+  Drupal\mcp_content_tools\ContentExporter: '@mcp_content_tools.exporter'
