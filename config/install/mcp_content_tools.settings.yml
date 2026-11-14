@@ -1,0 +1,14 @@
+bundles: []
+excluded_fields:
+  - revision_log
+  - uid
+  - revision_uid
+  - comment
+excluded_field_patterns:
+  - 'field_internal_*'
+  - 'field_private_*'
+max_results: 20
+max_chars: 20000
+include_unpublished: false
+include_author: false
+export_page_size: 50

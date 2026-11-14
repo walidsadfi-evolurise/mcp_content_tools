@@ -1,0 +1,7 @@
+mcp_content_tools.settings:
+  path: '/admin/config/services/mcp-content-tools'
+  defaults:
+    _form: '\Drupal\mcp_content_tools\Form\SettingsForm'
+    _title: 'MCP Content Tools'
+  requirements:
+    _permission: 'administer mcp content tools'

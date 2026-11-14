@@ -1,0 +1,17 @@
+services:
+  mcp_content_tools.exporter:
+    class: Drupal\mcp_content_tools\ContentExporter
+    arguments:
+      - '@entity_type.manager'
+      - '@entity_type.bundle.info'
+      - '@entity_field.manager'
+      - '@config.factory'
+      - '@language_manager'
+      - '@path_alias.manager'
+      - '@renderer'
+      - '@current_user'
+      - '@module_handler'
+      - '@request_stack'
+      - '@mcp_content_tools.html_to_markdown'
+  mcp_content_tools.html_to_markdown:
+    class: Drupal\mcp_content_tools\HtmlToMarkdown

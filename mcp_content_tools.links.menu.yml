@@ -1,0 +1,5 @@
+mcp_content_tools.settings:
+  title: 'MCP Content Tools'
+  description: 'Which content types and fields AI agents may read through MCP.'
+  parent: system.admin_config_services
+  route_name: mcp_content_tools.settings

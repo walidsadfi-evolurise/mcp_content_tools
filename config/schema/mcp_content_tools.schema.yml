@@ -1,0 +1,34 @@
+mcp_content_tools.settings:
+  type: config_object
+  label: 'MCP Content Tools settings'
+  mapping:
+    bundles:
+      type: sequence
+      label: 'Content types exposed (empty = all)'
+      sequence:
+        type: string
+    excluded_fields:
+      type: sequence
+      label: 'Field names never exposed'
+      sequence:
+        type: string
+    excluded_field_patterns:
+      type: sequence
+      label: 'Field name patterns never exposed (fnmatch)'
+      sequence:
+        type: string
+    max_results:
+      type: integer
+      label: 'Maximum results per search'
+    max_chars:
+      type: integer
+      label: 'Maximum characters per document'
+    include_unpublished:
+      type: boolean
+      label: 'Let accounts that may view unpublished content see it'
+    include_author:
+      type: boolean
+      label: 'Include author display name'
+    export_page_size:
+      type: integer
+      label: 'Documents per export page'

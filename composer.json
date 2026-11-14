@@ -1,0 +1,35 @@
+{
+    "name": "drupal/mcp_content_tools",
+    "description": "Expose Drupal content to AI agents through MCP Server: search, read as Markdown with citation, recent changes, site map, taxonomy, incremental export for indexing. Read-only, access-checked.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://www.drupal.org/project/mcp_content_tools",
+    "authors": [
+        {
+            "name": "Walid Sadfi",
+            "email": "walid.sadfi@evolurise.com",
+            "homepage": "https://walidsadfi.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/mcp_content_tools",
+        "source": "https://git.drupalcode.org/project/mcp_content_tools"
+    },
+    "require": {
+        "php": ">=8.3",
+        "drupal/core": "^10.3 || ^11",
+        "drupal/mcp_server": "^2.0@beta"
+    },
+    "suggest": {
+        "drush/drush": "^12.4 || ^13 for the mcp-content-tools:export command."
+    },
+    "autoload": {
+        "psr-4": {
+            "Drupal\\mcp_content_tools\\": "src/"
+        }
+    },
+    "extra": {
+        "installer-name": "mcp_content_tools"
+    }
+}

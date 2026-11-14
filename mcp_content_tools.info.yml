@@ -1,0 +1,12 @@
+name: 'MCP Content Tools'
+type: module
+description: 'Exposes site content to AI agents through MCP Server: search, read as Markdown with citation, recent changes, site map, taxonomy, and incremental export for indexing. Read-only, access-checked, field allowlist.'
+package: 'AI'
+core_version_requirement: ^10.3 || ^11
+php: 8.3
+dependencies:
+  - drupal:node
+  - drupal:taxonomy
+  - drupal:path_alias
+  - mcp_server:mcp_server
+configure: mcp_content_tools.settings

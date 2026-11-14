@@ -1,0 +1,10 @@
+'use mcp content tools':
+  title: 'Use MCP content tools'
+  description: 'Call the search_content, get_content, list_recent, site_map and get_taxonomy tools. Content access is still checked per node for the calling account.'
+'export content through mcp':
+  title: 'Export content through MCP (export_content tool)'
+  description: 'Pull the whole corpus incrementally for indexing. Grant to the dedicated indexing account only.'
+  restrict access: true
+'administer mcp content tools':
+  title: 'Administer MCP content tools'
+  restrict access: true
