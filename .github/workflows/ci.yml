@@ -57,4 +57,4 @@ jobs:
         run: |
           mkdir -p web/sites/default/files web/sites/simpletest
           chmod -R 777 web/sites/default/files web/sites/simpletest
-          vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/mcp_content_tools
+          vendor/bin/phpunit -c "$PWD/web/core/phpunit.xml.dist" web/modules/contrib/mcp_content_tools
