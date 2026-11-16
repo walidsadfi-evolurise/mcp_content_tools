@@ -19,8 +19,14 @@ use Mcp\Server\ClientGateway;
     'type' => 'object',
     'properties' => [
       'types' => ['type' => 'array', 'items' => ['type' => 'string']],
-      'langcode' => ['type' => 'string', 'description' => 'One language only. Default: every translation, one document each.'],
-      'since' => ['type' => 'string', 'description' => 'Only content changed at/after this time ("7d", ISO date-time, unix timestamp).'],
+      'langcode' => [
+        'type' => 'string',
+        'description' => 'One language only. Default: every translation, one document each.',
+      ],
+      'since' => [
+        'type' => 'string',
+        'description' => 'Only content changed at/after this time ("7d", ISO date-time, unix timestamp).',
+      ],
       'cursor' => ['type' => 'string', 'description' => 'The next_cursor of the previous page.'],
       'page_size' => ['type' => 'integer', 'description' => 'Documents per page (capped by site settings, default 50).'],
     ],

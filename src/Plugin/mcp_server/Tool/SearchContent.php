@@ -18,10 +18,20 @@ use Mcp\Server\ClientGateway;
   inputSchema: [
     'type' => 'object',
     'properties' => [
-      'query' => ['type' => 'string', 'description' => 'Keywords or a phrase to match (case-insensitive substring match).'],
-      'types' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Restrict to these content type machine names (see site_map). Default: all exposed types.'],
+      'query' => [
+        'type' => 'string',
+        'description' => 'Keywords or a phrase to match (case-insensitive substring match).',
+      ],
+      'types' => [
+        'type' => 'array',
+        'items' => ['type' => 'string'],
+        'description' => 'Restrict to these content type machine names (see site_map). Default: all exposed types.',
+      ],
       'langcode' => ['type' => 'string', 'description' => 'Language code, e.g. "fr". Default: any.'],
-      'term' => ['type' => 'integer', 'description' => 'Only content tagged with this taxonomy term id (see get_taxonomy).'],
+      'term' => [
+        'type' => 'integer',
+        'description' => 'Only content tagged with this taxonomy term id (see get_taxonomy).',
+      ],
       'limit' => ['type' => 'integer', 'description' => 'Max results (default 10, capped by site settings).'],
       'offset' => ['type' => 'integer', 'description' => 'Skip this many results, for paging.'],
     ],

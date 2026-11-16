@@ -19,8 +19,15 @@ use Mcp\Server\ClientGateway;
     'type' => 'object',
     'properties' => [
       'id' => ['type' => 'string', 'description' => 'Node id, UUID, path alias or URL.'],
-      'langcode' => ['type' => 'string', 'description' => 'Preferred translation, e.g. "fr". Falls back to the original.'],
-      'format' => ['type' => 'string', 'enum' => ['markdown', 'text', 'fields'], 'description' => 'markdown (default), text, or fields (structured values per field plus the Markdown).'],
+      'langcode' => [
+        'type' => 'string',
+        'description' => 'Preferred translation, e.g. "fr". Falls back to the original.',
+      ],
+      'format' => [
+        'type' => 'string',
+        'enum' => ['markdown', 'text', 'fields'],
+        'description' => 'markdown (default), text, or fields (structured values per field plus the Markdown).',
+      ],
     ],
     'required' => ['id'],
   ],

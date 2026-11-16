@@ -13,6 +13,11 @@ use Drupal\Tests\UnitTestCase;
  */
 final class HtmlToMarkdownTest extends UnitTestCase {
 
+  /**
+   * The converter under test.
+   *
+   * @var \Drupal\mcp_content_tools\HtmlToMarkdown
+   */
   private HtmlToMarkdown $converter;
 
   /**
@@ -38,12 +43,21 @@ final class HtmlToMarkdownTest extends UnitTestCase {
     return [
       'empty' => ['', ''],
       'plain' => ['plain &eacute; text', 'plain é text'],
-      'heading and paragraph' => ['<h2>Title &amp; co</h2><p>Hello <strong>world</strong>.</p>', "## Title & co\n\nHello **world**."],
-      'links' => ['<p>See <a href="/about">about</a> and <a href="javascript:x">bad</a>.</p>', 'See [about](/about) and bad.'],
+      'heading and paragraph' => [
+        '<h2>Title &amp; co</h2><p>Hello <strong>world</strong>.</p>',
+        "## Title & co\n\nHello **world**.",
+      ],
+      'links' => [
+        '<p>See <a href="/about">about</a> and <a href="javascript:x">bad</a>.</p>',
+        'See [about](/about) and bad.',
+      ],
       'lists' => ['<ul><li>one</li><li>two<ul><li>nested</li></ul></li></ul>', "- one\n- two\n  - nested"],
       'ordered' => ['<ol><li>a</li><li>b</li></ol>', "1. a\n2. b"],
       'blockquote' => ['<blockquote><p>quote</p></blockquote>', '> quote'],
-      'table' => ['<table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></table>', "| A | B |\n| --- | --- |\n| 1 | 2 |"],
+      'table' => [
+        '<table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></table>',
+        "| A | B |\n| --- | --- |\n| 1 | 2 |",
+      ],
       'code' => ['<pre><code>x = 1;</code></pre><p>use <code>y</code></p>', "```\nx = 1;\n```\n\nuse `y`"],
       'image' => ['<p><img src="/a.png" alt="An image"></p>', '![An image](/a.png)'],
       'script dropped' => ['<p>safe</p><script>alert(1)</script>', 'safe'],

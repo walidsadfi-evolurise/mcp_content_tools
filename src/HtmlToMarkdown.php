@@ -61,7 +61,12 @@ final class HtmlToMarkdown {
       case 'template':
         return '';
 
-      case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+      case 'h5':
+      case 'h6':
         $level = (int) $tag[1];
         return "\n\n" . str_repeat('#', $level) . ' ' . trim($this->children($node)) . "\n\n";
 

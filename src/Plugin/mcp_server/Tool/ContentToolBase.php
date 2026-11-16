@@ -19,8 +19,18 @@ abstract class ContentToolBase extends ToolPluginBase {
    */
   protected const PERMISSION = 'use mcp content tools';
 
+  /**
+   * The exporter doing the access-checked work.
+   *
+   * @var \Drupal\mcp_content_tools\ContentExporter
+   */
   protected ContentExporter $exporter;
 
+  /**
+   * The account the MCP session runs as.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
   protected AccountInterface $account;
 
   /**
@@ -66,11 +76,17 @@ abstract class ContentToolBase extends ToolPluginBase {
     return is_scalar($v) ? trim((string) $v) : $default;
   }
 
+  /**
+   * Reads an integer argument, falling back to a default.
+   */
   protected function int(array $args, string $key, int $default): int {
     $v = $args[$key] ?? NULL;
     return is_numeric($v) ? (int) $v : $default;
   }
 
+  /**
+   * Reads a list argument given as an array or a comma-separated string.
+   */
   protected function list(array $args, string $key): array {
     $v = $args[$key] ?? [];
     if (is_string($v)) {
@@ -80,7 +96,10 @@ abstract class ContentToolBase extends ToolPluginBase {
   }
 
   /**
-   * "2026-01-01", "2026-01-01T10:00:00Z", "7d", "24h" or a unix timestamp → timestamp.
+   * Parses a point in time given in one of the accepted forms.
+   *
+   * Accepts "2026-01-01", "2026-01-01T10:00:00Z", relative durations such as
+   * "7d" or "24h", or a unix timestamp.
    */
   protected function since(array $args, string $key): ?int {
     $v = $this->str($args, $key);

@@ -9,6 +9,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -20,7 +21,9 @@ use Drupal\path_alias\AliasManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Turns nodes into LLM-friendly documents, honouring access and the field allowlist.
+ * Turns nodes into LLM-friendly documents.
+ *
+ * Honours node access and the field allowlist.
  *
  * Every public method takes the account the MCP session runs as; nothing is
  * returned that this account could not see on the website.
@@ -102,6 +105,8 @@ class ContentExporter {
    * Full-text search over title and text fields, access-checked.
    *
    * @return array{results: list<array>, total: int, truncated: bool}
+   *   Matching documents, the total number of matches and whether the result
+   *   list was cut at the limit.
    */
   public function search(string $query, array $bundles, ?string $langcode, int $limit, int $offset, AccountInterface $account, ?int $term = NULL): array {
     $s = $this->settings();
@@ -233,8 +238,19 @@ class ContentExporter {
   /**
    * One node as a document, or NULL when not allowed.
    *
+   * @param \Drupal\node\NodeInterface $node
+   *   The node.
+   * @param string|null $langcode
+   *   Translation to use, NULL for the node's default language.
    * @param string $format
-   *   markdown | text | fields.
+   *   One of markdown, text or fields.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   Account the MCP session runs as.
+   * @param bool $forExport
+   *   TRUE when building a corpus export (skips the per-call summary).
+   *
+   * @return array|null
+   *   The document, or NULL when the account may not see the node.
    */
   public function document(NodeInterface $node, ?string $langcode, string $format, AccountInterface $account, bool $forExport = FALSE): ?array {
     $s = $this->settings();
@@ -294,9 +310,13 @@ class ContentExporter {
   }
 
   /**
-   * Incremental corpus export: documents changed since a timestamp, paged by (changed, nid).
+   * Incremental corpus export: documents changed since a timestamp.
+   *
+   * Pages are ordered by (changed, nid) so a cursor survives new edits.
    *
    * @return array{documents: list<array>, next_cursor: ?string, has_more: bool, total_remaining: int}
+   *   The page of documents, the cursor for the next page, whether more pages
+   *   exist and how many documents remain after this page.
    */
   public function export(array $bundles, ?string $langcode, ?int $since, ?string $cursor, int $pageSize, AccountInterface $account): array {
     $s = $this->settings();
@@ -472,6 +492,7 @@ class ContentExporter {
    * The content fields of a node that may be exposed.
    *
    * @return array<string, \Drupal\Core\Field\FieldDefinitionInterface>
+   *   Field definitions keyed by field name.
    */
   public function exposedFields(NodeInterface $node): array {
     $out = [];
@@ -495,6 +516,7 @@ class ContentExporter {
       return FALSE;
     }
     foreach ($s['excluded_field_patterns'] as $pattern) {
+      // phpcs:ignore Drupal.Functions.DiscouragedFunctions.Discouraged -- Shell-style patterns are what administrators type; no filesystem access is involved.
       if ($pattern !== '' && fnmatch($pattern, $name)) {
         return FALSE;
       }
@@ -600,11 +622,22 @@ class ContentExporter {
             catch (\Throwable) {
             }
           }
-          // Paragraphs and other composite entities: render their own text fields inline.
-          if (in_array($entity->getEntityTypeId(), ['paragraph', 'block_content'], TRUE) && $entity instanceof \Drupal\Core\Entity\FieldableEntityInterface) {
+          // Paragraphs and other composite entities: render their own text
+          // fields inline.
+          if (in_array($entity->getEntityTypeId(), ['paragraph', 'block_content'], TRUE) && $entity instanceof FieldableEntityInterface) {
             $inner = [];
+            $internal = [
+              'id',
+              'revision_id',
+              'parent_id',
+              'parent_type',
+              'parent_field_name',
+              'behavior_settings',
+              'info',
+              'reusable',
+            ];
             foreach ($entity->getFieldDefinitions() as $n => $d) {
-              if (!$this->isExposed($n, $d) || $entity->get($n)->isEmpty() || in_array($n, ['id', 'revision_id', 'parent_id', 'parent_type', 'parent_field_name', 'behavior_settings', 'info', 'reusable'], TRUE)) {
+              if (!$this->isExposed($n, $d) || $entity->get($n)->isEmpty() || in_array($n, $internal, TRUE)) {
                 continue;
               }
               $r = $this->renderField($entity->get($n), $d, $format);
@@ -649,12 +682,20 @@ class ContentExporter {
       case 'address':
         $vals = [];
         foreach ($items as $item) {
-          $vals[] = trim(implode(', ', array_filter([$item->address_line1, $item->address_line2, $item->postal_code, $item->locality, $item->country_code])));
+          $parts = [
+            $item->address_line1,
+            $item->address_line2,
+            $item->postal_code,
+            $item->locality,
+            $item->country_code,
+          ];
+          $vals[] = trim(implode(', ', array_filter($parts)));
         }
         return count($vals) === 1 ? $vals[0] : $vals;
 
       default:
-        // Unknown field type: expose the main property as text when it is scalar.
+        // Unknown field type: expose the main property as text when it is
+        // scalar.
         $main = $definition->getFieldStorageDefinition()->getMainPropertyName();
         if (!$main) {
           return NULL;

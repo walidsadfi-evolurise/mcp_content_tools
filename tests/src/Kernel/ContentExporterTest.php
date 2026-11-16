@@ -18,7 +18,7 @@ use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\user\Entity\Role;
 
 /**
- * Search, document rendering, access and export cursor against a real entity system.
+ * Search, rendering, access and export cursor against a real entity system.
  *
  * The exporter is built by hand so the test does not need mcp_server installed.
  *
@@ -32,16 +32,23 @@ final class ContentExporterTest extends KernelTestBase {
    * {@inheritdoc}
    */
   protected static $modules = [
-    'system', 'user', 'field', 'text', 'filter', 'node', 'taxonomy', 'path_alias', 'path',
+    'system',
+    'user',
+    'field',
+    'text',
+    'filter',
+    'node',
+    'taxonomy',
+    'path_alias',
+    'path',
+    'mcp_content_tools',
   ];
 
   /**
-   * The module is not installed in this test (mcp_server is not required here), so its schema is absent.
+   * The exporter under test, built by hand so mcp_server is not needed.
    *
-   * @var bool
+   * @var \Drupal\mcp_content_tools\ContentExporter
    */
-  protected $strictConfigSchema = FALSE;
-
   private ContentExporter $exporter;
 
   /**
@@ -63,10 +70,30 @@ final class ContentExporterTest extends KernelTestBase {
     node_add_body_field(NodeType::load('secret'));
 
     Vocabulary::create(['vid' => 'tags', 'name' => 'Tags'])->save();
-    FieldStorageConfig::create(['field_name' => 'field_tags', 'entity_type' => 'node', 'type' => 'entity_reference', 'settings' => ['target_type' => 'taxonomy_term'], 'cardinality' => -1])->save();
-    FieldConfig::create(['field_name' => 'field_tags', 'entity_type' => 'node', 'bundle' => 'article', 'label' => 'Tags'])->save();
-    FieldStorageConfig::create(['field_name' => 'field_internal_note', 'entity_type' => 'node', 'type' => 'string'])->save();
-    FieldConfig::create(['field_name' => 'field_internal_note', 'entity_type' => 'node', 'bundle' => 'article', 'label' => 'Internal note'])->save();
+    FieldStorageConfig::create([
+      'field_name' => 'field_tags',
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'settings' => ['target_type' => 'taxonomy_term'],
+      'cardinality' => -1,
+    ])->save();
+    FieldConfig::create([
+      'field_name' => 'field_tags',
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => 'Tags',
+    ])->save();
+    FieldStorageConfig::create([
+      'field_name' => 'field_internal_note',
+      'entity_type' => 'node',
+      'type' => 'string',
+    ])->save();
+    FieldConfig::create([
+      'field_name' => 'field_internal_note',
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => 'Internal note',
+    ])->save();
 
     $this->config('mcp_content_tools.settings')
       ->set('bundles', ['article'])
@@ -111,10 +138,35 @@ final class ContentExporterTest extends KernelTestBase {
     $viewer = $this->viewer();
     $tag = Term::create(['vid' => 'tags', 'name' => 'Drupal']);
     $tag->save();
-    Node::create(['type' => 'article', 'title' => 'Hello Drupal', 'status' => 1, 'body' => ['value' => '<p>Drupal <strong>rocks</strong> for agents.</p>', 'format' => 'raw'], 'field_tags' => [$tag->id()], 'field_internal_note' => 'do not leak'])->save();
-    Node::create(['type' => 'article', 'title' => 'Unrelated', 'status' => 1, 'body' => ['value' => 'Nothing to see.', 'format' => 'raw']])->save();
-    Node::create(['type' => 'article', 'title' => 'Draft Drupal', 'status' => 0, 'body' => ['value' => 'Drupal draft', 'format' => 'raw']])->save();
-    Node::create(['type' => 'secret', 'title' => 'Secret Drupal', 'status' => 1, 'body' => ['value' => 'Drupal secret', 'format' => 'raw']])->save();
+    Node::create([
+      'type' => 'article',
+      'title' => 'Hello Drupal',
+      'status' => 1,
+      'body' => [
+        'value' => '<p>Drupal <strong>rocks</strong> for agents.</p>',
+        'format' => 'raw',
+      ],
+      'field_tags' => [$tag->id()],
+      'field_internal_note' => 'do not leak',
+    ])->save();
+    Node::create([
+      'type' => 'article',
+      'title' => 'Unrelated',
+      'status' => 1,
+      'body' => ['value' => 'Nothing to see.', 'format' => 'raw'],
+    ])->save();
+    Node::create([
+      'type' => 'article',
+      'title' => 'Draft Drupal',
+      'status' => 0,
+      'body' => ['value' => 'Drupal draft', 'format' => 'raw'],
+    ])->save();
+    Node::create([
+      'type' => 'secret',
+      'title' => 'Secret Drupal',
+      'status' => 1,
+      'body' => ['value' => 'Drupal secret', 'format' => 'raw'],
+    ])->save();
 
     $r = $this->exporter->search('drupal', [], NULL, 10, 0, $viewer);
     $titles = array_column($r['results'], 'title');
@@ -130,7 +182,7 @@ final class ContentExporterTest extends KernelTestBase {
   }
 
   /**
-   * Document rendering: markdown, excluded field, citation, hash; resolve by alias/url/uuid.
+   * Rendering: markdown, excluded field, citation, hash; alias/url/uuid lookup.
    */
   public function testDocumentAndResolve(): void {
     $viewer = $this->viewer();
@@ -140,7 +192,10 @@ final class ContentExporterTest extends KernelTestBase {
       'type' => 'article',
       'title' => 'Hello Drupal',
       'status' => 1,
-      'body' => ['value' => '<h2>Intro</h2><p>Drupal <strong>rocks</strong>.</p><ul><li>a</li><li>b</li></ul>', 'format' => 'raw'],
+      'body' => [
+        'value' => '<h2>Intro</h2><p>Drupal <strong>rocks</strong>.</p><ul><li>a</li><li>b</li></ul>',
+        'format' => 'raw',
+      ],
       'field_tags' => [$tag->id()],
       'field_internal_note' => 'do not leak',
       'path' => ['alias' => '/hello-drupal'],
@@ -194,7 +249,13 @@ final class ContentExporterTest extends KernelTestBase {
     $viewer = $this->viewer();
     $ids = [];
     for ($i = 1; $i <= 5; $i++) {
-      $n = Node::create(['type' => 'article', 'title' => "Doc $i", 'status' => 1, 'body' => ['value' => "Body $i", 'format' => 'raw'], 'changed' => 1_700_000_000]);
+      $n = Node::create([
+        'type' => 'article',
+        'title' => "Doc $i",
+        'status' => 1,
+        'body' => ['value' => "Body $i", 'format' => 'raw'],
+        'changed' => 1_700_000_000,
+      ]);
       $n->save();
       $ids[] = (int) $n->id();
     }

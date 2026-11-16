@@ -18,7 +18,11 @@ use Mcp\Server\ClientGateway;
   inputSchema: [
     'type' => 'object',
     'properties' => [
-      'types' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Content type machine names. Default: all exposed types.'],
+      'types' => [
+        'type' => 'array',
+        'items' => ['type' => 'string'],
+        'description' => 'Content type machine names. Default: all exposed types.',
+      ],
       'langcode' => ['type' => 'string'],
       'since' => ['type' => 'string', 'description' => '"7d", "48h", "2026-01-01", ISO date-time or unix timestamp.'],
       'limit' => ['type' => 'integer', 'description' => 'Default 10.'],

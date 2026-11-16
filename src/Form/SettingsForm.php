@@ -59,7 +59,7 @@ final class SettingsForm extends ConfigFormBase {
       $options[$id] = $info['label'];
     }
     $form['intro'] = [
-      '#markup' => '<p>' . $this->t('These tools are read-only and always check the calling account\'s access to each node. Settings here narrow further what any agent may see. Grant <em>Use MCP content tools</em> (and <em>Access MCP server</em>) to the role your MCP clients authenticate as.') . '</p>',
+      '#markup' => '<p>' . $this->t("These tools are read-only and always check the calling account's access to each node. Settings here narrow further what any agent may see. Grant <em>Use MCP content tools</em> (and <em>Access MCP server</em>) to the role your MCP clients authenticate as.") . '</p>',
     ];
     $form['bundles'] = [
       '#type' => 'checkboxes',
