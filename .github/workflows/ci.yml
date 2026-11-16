@@ -40,7 +40,7 @@ jobs:
           composer config allow-plugins.tbachert/spi true
           composer config repositories.module path ../module
           composer require --no-update "drupal/mcp_content_tools:*@dev" "drupal/mcp_server:^2.0@beta" "drush/drush:^13" "drupal/core-dev:${{ matrix.drupal }}"
-          composer install --no-interaction --no-progress
+          composer update --no-interaction --no-progress
 
       - name: Lint (Drupal coding standards)
         working-directory: drupal
@@ -57,4 +57,4 @@ jobs:
         run: |
           mkdir -p web/sites/default/files web/sites/simpletest
           chmod -R 777 web/sites/default/files web/sites/simpletest
-          vendor/bin/phpunit -c web/core/phpunit.xml.dist --testsuite unit,kernel web/modules/contrib/mcp_content_tools
+          vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/mcp_content_tools
