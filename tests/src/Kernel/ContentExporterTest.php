@@ -306,14 +306,17 @@ final class ContentExporterTest extends KernelTestBase {
   /**
    * Adds a "body" text field to node bundles.
    *
-   * Replaces node_add_body_field(), deprecated in drupal:11.3.0.
+   * Replaces node_add_body_field(), deprecated in drupal:11.3.0. Drupal 10
+   * still ships the body field storage with the node module; 11.3 does not.
    */
   private function addBodyField(string ...$bundles): void {
-    FieldStorageConfig::create([
-      'field_name' => 'body',
-      'entity_type' => 'node',
-      'type' => 'text_with_summary',
-    ])->save();
+    if (!FieldStorageConfig::loadByName('node', 'body')) {
+      FieldStorageConfig::create([
+        'field_name' => 'body',
+        'entity_type' => 'node',
+        'type' => 'text_with_summary',
+      ])->save();
+    }
     foreach ($bundles as $bundle) {
       FieldConfig::create([
         'field_name' => 'body',
