@@ -267,6 +267,8 @@ class ContentExporter {
     $doc = $this->summary($node);
     $doc['fields'] = [];
     $body = [];
+    // "fields" returns the structured values plus the same Markdown document.
+    $markdown = $format !== 'text';
     foreach ($this->exposedFields($node) as $name => $definition) {
       $items = $node->get($name);
       if ($items->isEmpty()) {
@@ -282,14 +284,14 @@ class ContentExporter {
         'value' => $rendered,
       ];
       if (is_string($rendered)) {
-        $body[] = ($format === 'markdown' ? '## ' . $definition->getLabel() . "\n\n" : $definition->getLabel() . ":\n") . $rendered;
+        $body[] = ($markdown ? '## ' . $definition->getLabel() . "\n\n" : $definition->getLabel() . ":\n") . $rendered;
       }
       elseif (is_array($rendered)) {
         $flat = implode(', ', array_map(static fn($v) => is_array($v) ? ($v['label'] ?? $v['title'] ?? $v['url'] ?? json_encode($v)) : (string) $v, $rendered));
-        $body[] = ($format === 'markdown' ? '**' . $definition->getLabel() . ':** ' : $definition->getLabel() . ': ') . $flat;
+        $body[] = ($markdown ? '**' . $definition->getLabel() . ':** ' : $definition->getLabel() . ': ') . $flat;
       }
     }
-    $text = ($format === 'markdown' ? '# ' . $node->label() . "\n\n" : $node->label() . "\n\n") . implode("\n\n", $body);
+    $text = ($markdown ? '# ' . $node->label() . "\n\n" : $node->label() . "\n\n") . implode("\n\n", $body);
     $truncated = FALSE;
     if (mb_strlen($text) > $s['max_chars']) {
       $text = Unicode::truncate($text, $s['max_chars'], TRUE, TRUE);
