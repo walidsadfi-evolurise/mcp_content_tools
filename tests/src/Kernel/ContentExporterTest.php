@@ -16,6 +16,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\user\Entity\Role;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Search, rendering, access and export cursor against a real entity system.
@@ -24,6 +25,7 @@ use Drupal\user\Entity\Role;
  *
  * @group mcp_content_tools
  */
+#[RunTestsInSeparateProcesses]
 final class ContentExporterTest extends KernelTestBase {
 
   use UserCreationTrait;
@@ -66,8 +68,7 @@ final class ContentExporterTest extends KernelTestBase {
 
     NodeType::create(['type' => 'article', 'name' => 'Article'])->save();
     NodeType::create(['type' => 'secret', 'name' => 'Secret'])->save();
-    node_add_body_field(NodeType::load('article'));
-    node_add_body_field(NodeType::load('secret'));
+    $this->addBodyField('article', 'secret');
 
     Vocabulary::create(['vid' => 'tags', 'name' => 'Tags'])->save();
     FieldStorageConfig::create([
@@ -300,6 +301,27 @@ final class ContentExporterTest extends KernelTestBase {
     $this->assertSame(1, $tax['terms'][1]['depth']);
     $this->assertSame((int) $parent->id(), $tax['terms'][1]['parent']);
     $this->assertNull($this->exporter->taxonomy('nope', NULL, $viewer));
+  }
+
+  /**
+   * Adds a "body" text field to node bundles.
+   *
+   * Replaces node_add_body_field(), deprecated in drupal:11.3.0.
+   */
+  private function addBodyField(string ...$bundles): void {
+    FieldStorageConfig::create([
+      'field_name' => 'body',
+      'entity_type' => 'node',
+      'type' => 'text_with_summary',
+    ])->save();
+    foreach ($bundles as $bundle) {
+      FieldConfig::create([
+        'field_name' => 'body',
+        'entity_type' => 'node',
+        'bundle' => $bundle,
+        'label' => 'Body',
+      ])->save();
+    }
   }
 
 }
